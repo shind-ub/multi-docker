@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t scotthind/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run scotthind/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t scotthind/multi-client ./client
+  - docker build -t scotthind/multi-nginx ./nginx
+  - docker build -t scotthind/multi-server ./server
+  - docker build -t scotthind/multi-worker ./worker
+  # log in to Docker CLU
+  - docker login -u "$DOCKER_ID" -p "$DOCKER_PASSWORD"
+  # push images to docker hub
+  - docker push scotthind/multi-client
+  - docker push scotthind/multi-nginx
+  - docker push scotthind/multi-server
+  - docker push scotthind/multi-worker
